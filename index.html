@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rosé Glam - Tienda de Maquillaje</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #fff0f5;
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+    }
+    header { position: relative; overflow: hidden; height: 380px; transition: height 0.5s ease; background-color: #ffe6f2; width: 100vw; }
+    header.minimized { height: 160px; }
+    .banner { width: 100%; height: 100%; object-fit: cover; background-color: #ffe6f2; }
+    .overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:linear-gradient(to bottom,rgba(255,182,193,0.3),rgba(255,240,245,0.6)); }
+    .banner-text {
+      position:absolute; top:45%; left:50%; transform:translate(-50%,-50%);
+      text-align:center; color:#fff; width:90%; max-width:800px; text-shadow:0 2px 5px rgba(0,0,0,0.3);
+      transition:all 0.5s ease;
+    }
+    header.minimized .banner-text { transform:translate(-50%,-50%) scale(0.85); opacity:0.9; }
+    .btn { background-color:#ffb6c1; color:white; font-weight:600; transition:all 0.3s; }
+    .btn:hover { background-color:#ff91a4; transform:scale(1.05); }
+    .fade-msg { position:fixed; top:20px; right:20px; background:#ffb6c1; color:white;
+      padding:10px 16px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.2);
+      opacity:0; transition:opacity 0.4s ease; z-index:9999; }
+    .fade-msg.show { opacity:1; }
+  </style>
+</head>
+<body class="text-gray-800">
+
+  <div id="msg" class="fade-msg"></div>
+
+  <header id="banner">
+    <img src="rosebanner (2).png" alt="Banner de Rosé Glam" class="banner">
+    <div class="overlay"></div>
+    <div class="banner-text">
+      <h2 class="text-3xl font-semibold">Descubre tu belleza con estilo</h2>
+      <p>💄 Tienda de maquillaje en tonos rosados — Compra fácil y recibe atención directa por WhatsApp 💬</p>
+    </div>
+  </header>
+
+  <!-- SELECCIÓN DE MODO -->
+  <section id="mode-section" class="p-6 text-center">
+    <h2 class="text-2xl font-semibold text-pink-600 mb-4">Selecciona tu modo de acceso</h2>
+    <div class="flex justify-center gap-6">
+      <button id="modoAdmin" class="btn px-6 py-2 rounded-lg">👑 Administradora</button>
+      <button id="modoComprador" class="btn px-6 py-2 rounded-lg">🛍️ Comprador</button>
+    </div>
+  </section>
+
+  <!-- LOGIN ADMIN -->
+  <section id="login-section" class="hidden p-6 text-center">
+    <h2 class="text-2xl font-semibold text-pink-600 mb-4">🔐 Iniciar sesión de administradora</h2>
+    <input type="text" id="adminUser" placeholder="Usuario" class="border px-4 py-2 rounded-lg mb-3 block mx-auto">
+    <input type="password" id="adminPass" placeholder="Contraseña" class="border px-4 py-2 rounded-lg mb-3 block mx-auto">
+    <button id="loginBtn" class="btn px-6 py-2 rounded-lg">Entrar</button>
+  </section>
+
+  <!-- PANEL ADMIN -->
+  <section id="admin-section" class="hidden p-6 bg-pink-100 rounded-lg m-6 shadow-lg">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-semibold text-pink-700">👑 Panel de Administradora</h2>
+      <button id="logoutBtn" class="text-pink-600 font-semibold hover:text-red-500">Cerrar sesión</button>
+    </div>
+
+    <div class="mb-4 grid md:grid-cols-2 gap-3">
+      <input id="nombreProd" type="text" placeholder="Nombre del producto" class="border rounded px-3 py-2">
+      <input id="precioProd" type="number" placeholder="Precio" class="border rounded px-3 py-2">
+      <input id="stockProd" type="number" placeholder="Cantidad en stock" class="border rounded px-3 py-2">
+      <input id="imgProd" type="text" placeholder="URL de la imagen" class="border rounded px-3 py-2">
+      <input id="catProd" type="text" placeholder="Categoría (Labiales, Sombras...)" class="border rounded px-3 py-2">
+      <button id="agregarProd" class="btn px-4 py-2 rounded-lg shadow-md col-span-full">Agregar producto</button>
+    </div>
+
+    <h3 class="text-xl text-pink-700 mb-3 font-semibold">Modificar stock existente:</h3>
+    <div id="stock-list" class="space-y-2"></div>
+  </section>
+
+  <!-- FILTROS -->
+  <div class="p-4 flex justify-center gap-3 flex-wrap">
+    <button class="btn px-3 py-1 rounded" data-cat="Todos">Todos</button>
+    <button class="btn px-3 py-1 rounded" data-cat="Labiales">Labiales</button>
+    <button class="btn px-3 py-1 rounded" data-cat="Sombras">Sombras</button>
+    <button class="btn px-3 py-1 rounded" data-cat="Brochas">Brochas</button>
+  </div>
+
+  <!-- CATÁLOGO -->
+  <section class="p-6">
+    <h2 class="text-2xl font-semibold text-center mb-6 text-pink-500">Catálogo</h2>
+    <div id="productos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+  </section>
+
+  <!-- CARRITO -->
+  <section class="p-6 pastel-bg mt-6 rounded-t-3xl shadow-inner">
+    <h2 class="text-2xl font-semibold text-center mb-4 text-pink-700">🛍️ Tu carrito (<span id="cart-count">0</span>)</h2>
+    <ul id="carrito" class="mb-4 max-w-md mx-auto bg-white rounded-xl shadow p-3"></ul>
+    <div class="text-center">
+      <button id="comprar" class="btn px-6 py-2 rounded-lg shadow-md">Finalizar compra por WhatsApp</button>
+    </div>
+  </section>
+
+  <footer class="text-center py-4 text-sm text-gray-500">
+    © 2025 Rosé Glam — Todos los derechos reservados.
+  </footer>
+
+<script>
+const msg=document.getElementById("msg");
+function showMsg(text,color="#ffb6c1"){msg.textContent=text;msg.style.background=color;msg.classList.add("show");setTimeout(()=>msg.classList.remove("show"),2500);}
+window.addEventListener("scroll",()=>{const h=document.getElementById("banner");window.scrollY>80?h.classList.add("minimized"):h.classList.remove("minimized");});
+
+let productos=JSON.parse(localStorage.getItem('productos'))||[
+  {id:1,nombre:"Labial Rosa Suave",precio:25000,img:"https://tse3.mm.bing.net/th/id/OIP.KyauOfzcv95TUP-j1484YgHaHZ?rs=1",categoria:"Labiales",stock:10},
+  {id:2,nombre:"Paleta de Sombras Rosé",precio:45000,img:"https://images.tcdn.com.br/img/img_prod/1018221/paleta_de_sombras_rose_luisance_l3236_27555_1_4b919b3223e8a68889f9a6d96168a529.jpg",categoria:"Sombras",stock:5},
+  {id:3,nombre:"Set de Brochas PinkDream",precio:30000,img:"https://cdnx.jumpseller.com/makeup-boutique/image/25328838/resize/610/610?1650649613",categoria:"Brochas",stock:7}
+];
+let carrito=JSON.parse(localStorage.getItem('carrito'))||[];
+const productosDiv=document.getElementById('productos');
+const carritoUl=document.getElementById('carrito');
+const cartCount=document.getElementById('cart-count');
+const stockList=document.getElementById('stock-list');
+let categoriaActual="Todos";
+let modo="";
+
+function mostrarProductos(cat="Todos"){
+  categoriaActual=cat;
+  productosDiv.innerHTML="";
+  const filtrados=cat==="Todos"?productos:productos.filter(p=>p.categoria.toLowerCase()===cat.toLowerCase());
+  const lista=(modo==="admin"?filtrados:filtrados.filter(p=>p.stock>0));
+  if(lista.length===0){productosDiv.innerHTML=`<p class="text-center text-gray-500">No hay productos disponibles.</p>`;return;}
+  lista.forEach(prod=>{
+    const d=document.createElement('div');
+    d.className="bg-white rounded-xl shadow-md p-4 text-center hover:shadow-lg transition";
+    d.innerHTML=`
+      <img src="${prod.img}" alt="${prod.nombre}" class="mx-auto w-32 h-32 object-contain mb-3 rounded-lg">
+      <h3 class="font-semibold text-pink-600">${prod.nombre}</h3>
+      <p class="text-sm text-gray-500">${prod.categoria}</p>
+      <p class="font-bold mt-1">$${prod.precio.toLocaleString()}</p>
+      <p class="text-xs text-gray-600 mt-1">Stock: ${prod.stock}</p>
+      ${modo==="admin"?"":`<button class="btn mt-3 px-4 py-2 rounded-lg w-full" ${prod.stock<=0?"disabled style='background:#ccc'":""}>${prod.stock>0?"Agregar al carrito":"Sin stock"}</button>`}
+    `;
+    if(modo!=="admin" && prod.stock>0){d.querySelector("button").addEventListener("click",()=>agregarAlCarrito(prod.id));}
+    productosDiv.appendChild(d);
+  });
+}
+
+function agregarAlCarrito(id){
+  const p=productos.find(x=>x.id===id);
+  if(p.stock>0){p.stock--;carrito.push({...p});
+    if(p.stock===0){showMsg(`${p.nombre} se agotó ❌`,"#f87171");}
+    guardarDatos();mostrarProductos(categoriaActual);mostrarCarrito();mostrarStockAdmin();
+    showMsg("💖 Agregado al carrito");
+  }
+}
+
+function mostrarCarrito(){
+  carritoUl.innerHTML="";
+  carrito.forEach((it,i)=>{
+    const li=document.createElement("li");
+    li.className="flex justify-between items-center border-b py-2 text-sm";
+    li.innerHTML=`<span>${it.nombre} - $${it.precio.toLocaleString()}</span><button class='text-red-500 font-bold hover:text-red-700' onclick='eliminarDelCarrito(${i})'>x</button>`;
+    carritoUl.appendChild(li);
+  });
+  cartCount.textContent=carrito.length;
+}
+
+function eliminarDelCarrito(i){carrito.splice(i,1);guardarDatos();mostrarCarrito();}
+function guardarDatos(){localStorage.setItem("carrito",JSON.stringify(carrito));localStorage.setItem("productos",JSON.stringify(productos));}
+
+// FINALIZAR COMPRA
+document.getElementById("comprar").addEventListener("click",()=>{
+  if(carrito.length===0){showMsg("Tu carrito está vacío 🛒","#f87171");return;}
+  const msgW=carrito.map(p=>`• ${p.nombre} - $${p.precio.toLocaleString()}`).join('%0A');
+  const total=carrito.reduce((a,p)=>a+p.precio,0);
+  const num="573244339886";
+  showMsg("Compra finalizada 💄","#a78bfa");
+  carrito=[];guardarDatos();mostrarCarrito();mostrarProductos();
+  window.open(`https://wa.me/${num}?text=Hola!%20Quiero%20comprar:%0A${msgW}%0ATotal:%20$${total.toLocaleString()}`,"_blank");
+});
+
+// ADMIN LOGIN
+const adminUser="adminrose", adminPass="rose123";
+document.getElementById("loginBtn").addEventListener("click",()=>{
+  const user=document.getElementById("adminUser").value.trim();
+  const pass=document.getElementById("adminPass").value.trim();
+  if(user===adminUser && pass===adminPass){
+    modo="admin";showMsg("Bienvenida administradora 💖","#a78bfa");
+    document.getElementById("admin-section").classList.remove("hidden");
+    document.getElementById("login-section").classList.add("hidden");
+    mostrarStockAdmin();mostrarProductos();
+  }else showMsg("Usuario o contraseña incorrectos ❌","#f87171");
+});
+document.getElementById("logoutBtn").addEventListener("click",()=>{
+  modo="";document.getElementById("admin-section").classList.add("hidden");
+  document.getElementById("mode-section").classList.remove("hidden");
+  showMsg("Sesión cerrada","#9ca3af");
+});
+
+// MODO SELECCIÓN
+document.getElementById("modoAdmin").addEventListener("click",()=>{
+  document.getElementById("mode-section").classList.add("hidden");
+  document.getElementById("login-section").classList.remove("hidden");
+});
+document.getElementById("modoComprador").addEventListener("click",()=>{
+  modo="comprador";document.getElementById("mode-section").classList.add("hidden");
+  showMsg("Modo comprador activo 🛍️");mostrarProductos();
+});
+
+// AGREGAR PRODUCTO
+document.getElementById("agregarProd").addEventListener("click",()=>{
+  const n=document.getElementById("nombreProd").value.trim();
+  const p=parseFloat(document.getElementById("precioProd").value);
+  const s=parseInt(document.getElementById("stockProd").value);
+  const i=document.getElementById("imgProd").value.trim();
+  const c=document.getElementById("catProd").value.trim();
+  if(!n||!p||!s||!i||!c){showMsg("Completa todos los campos","#f87171");return;}
+  productos.push({id:productos.length+1,nombre:n,precio:p,stock:s,img:i,categoria:c});
+  guardarDatos();mostrarProductos(c);mostrarStockAdmin();
+  showMsg(`Producto agregado a ${c} 🎀`);
+  document.querySelectorAll('#admin-section input').forEach(inp=>inp.value="");
+});
+
+// STOCK ADMIN
+function mostrarStockAdmin(){
+  stockList.innerHTML="";
+  productos.forEach((p,i)=>{
+    const d=document.createElement("div");
+    d.className="flex justify-between items-center bg-white rounded-lg p-3 shadow";
+    d.innerHTML=`<span>${p.nombre} (${p.categoria})</span>
+    <input type="number" value="${p.stock}" min="0" class="border rounded px-2 py-1 w-16 text-center" onchange="actualizarStock(${i},this.value)">`;
+    stockList.appendChild(d);
+  });
+}
+window.actualizarStock=(i,v)=>{productos[i].stock=parseInt(v);guardarDatos();mostrarProductos(categoriaActual);};
+
+document.querySelectorAll("[data-cat]").forEach(b=>b.addEventListener("click",()=>mostrarProductos(b.dataset.cat)));
+mostrarProductos();mostrarCarrito();
+</script>
+</body>
+</html>
